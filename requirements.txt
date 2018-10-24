@@ -1,0 +1,2 @@
+jwcrypto==0.6.dev1
+requests==2.18.4
