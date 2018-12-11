@@ -11,7 +11,11 @@ import util
 
 
 def sign_request_example():
-    """Example: sign a request object."""
+    """Example: sign a request object.
+
+    Loads the request object fields from environment variables and produces the
+    signed JWT as text.
+    """
     # Create a store for holding JWKs (e.g. on service startup).
     jwk_store = JWKSet()
 
@@ -26,9 +30,10 @@ def sign_request_example():
     raw_request_object = util.get_raw_request_object()
 
     # Get a key from the JWK store, and use it to sign the request object.
-    jwk = jwk_store.get_key(util.get_kid())
-    jwt = util.sign_request(jwk, raw_request_object)
-    return jwt
+    kid = util.get_kid()
+    jwk = jwk_store.get_key(kid)
+    jwt_as_text = util.sign_request(jwk, raw_request_object)
+    return jwt_as_text
 
 
 if __name__ == '__main__':

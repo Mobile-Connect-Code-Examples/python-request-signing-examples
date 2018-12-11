@@ -13,12 +13,22 @@ logger = logging.getLogger(__name__)
 REPO_ROOT = path.dirname(path.dirname(__file__))
 
 
+def require_environment_variable(name):
+    """Retrieve an environment variable.
+
+    Raises ValueError if the variable isn't set.
+    """
+    value = environ.get(name)
+    if value is None:
+        raise ValueError("Environment variable not set!", name)
+    return value
+
+
 def load_key_text(filepath=''):
     """Load the text from a private key file.
 
     Args:
-        filepath (str): the filepath to load from. Defaults to the environment
-            variable PRIVATE_KEY_FILE. If this is not set, raises ValueError.
+        filepath (str): the filepath to load from.
     """
     if not filepath:
         raise ValueError('Invalid filepath', filepath)
@@ -41,10 +51,14 @@ def get_kid():
     sent; the operator will have a copy of the relevant public key.
 
     In these examples the kid can be specified by setting the KID environment
-    variable; otherwise, it defaults to 'developer-app'.
+    variable; otherwise, it defaults to 'fake-app-uuid'.
     """
-    return environ.get('KID', 'developer-app')
+    return environ.get('KID', 'fake-app-uuid')
 
+
+def get_client_id():
+    """Get the client_id field."""
+    return environ.get('CLIENT_ID', 'ZmFrZS1hcHAtdXVpZDpvcGVyYXRvci1i')
 
 
 # Keys which are required by the request object; included for reference.
@@ -61,8 +75,7 @@ def get_raw_request_object(overrides=None):
     Args:
         overrides (dict): optional overrides for request object fields.
     """
-    client_id = environ.get(
-        'CLIENT_ID', 'x-a94d903f-ad45-4135-80b8-ac459f41b38f')
+    client_id = get_client_id()
     request_object = {
         # The `response_type` field is required in the request object, but can
         # currently only take the value "mc_si_async_code". Having this allows
@@ -107,7 +120,11 @@ def get_raw_request_object(overrides=None):
         # authentication method selection logic based on the acr_values.
         # ID GW/Authorization server MUST return the achieved level of
         # assurance in the acr parameter.
-        'acr_values': int(environ.get('ACR_VALUES', '3')),
+        #
+        # NOTE: the spec isn't clear on whether acr_values should be an int or
+        # string (or perhaps both are permissible). Currently the Sandbox only
+        # supports string values but this may change.
+        'acr_values': environ.get('ACR_VALUES', '3'),
         # A token used by the IDGW to authenticate when using the service
         # provider's client notification endpoint (passed as the bearer token).
         # This is provided by the service provider.
@@ -121,7 +138,8 @@ def get_raw_request_object(overrides=None):
         # operated by the service provider and must equal the
         # `notification_uri` registered for the SP during onboarding.
         'notification_uri': environ.get(
-            'NOTIFICATION_URI' 'https://mc.example.com/callback'),
+            'NOTIFICATION_URI',
+            'http://fakeserviceprovider:8765/fakesp/notify'),
         # The issuer ID. The ID of the party signing the request. This should
         # be the client_id in most cases, and must use the HTTPS protocol. For
         # specifics see IDY.02 section 6.3.3 and the Open ID spec:
@@ -132,7 +150,8 @@ def get_raw_request_object(overrides=None):
         # OAuth 2.0 client application requiring authorization. For more
         # details see IDY.02 or the Open ID spec:
         # https://openid.net/specs/openid-connect-core-1_0.html#RequestObject
-        'aud': environ.get('AUD', 'https://operator.example.com'),
+        'aud': environ.get(
+            'AUD', 'http://operator-b.mcsandbox.zoetrope.io:9090'),
     }
 
     # Optional request object parameters; these are provided for the sake of
@@ -141,7 +160,7 @@ def get_raw_request_object(overrides=None):
         # We'll include some claims to be returned in the response. NOTE: this
         # is *not* to be confused with the notion of JWT claims! JWT claims
         # will be the entire request object.
-        'claims': (json.loads(environ['claims']) if 'claims' in environ else {
+        'claims': (json.loads(environ['CLAIMS']) if 'CLAIMS' in environ else {
             "premiuminfo": {
                 "address": {
                     "value": "123 Fake Street",

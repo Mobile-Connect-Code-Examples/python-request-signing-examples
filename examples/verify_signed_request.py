@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""decode_signed_request.py
+"""verify_signed_request.py
 
 An example showing the decoding of a signed request object.
 """
@@ -11,7 +11,7 @@ from jwcrypto.jwt import JWT
 import util
 
 
-def decode_signed_request_example(signed_request_object):
+def verify_signed_request_example(signed_request_object):
     # Create a store for holding JWKs (e.g. on service startup).
     jwk_store = JWKSet()
 
@@ -23,7 +23,7 @@ def decode_signed_request_example(signed_request_object):
     jwk_store.import_keyset(public_key_text)
 
     # Get the key from the store.
-    kid = environ.get('kid', 'developer-app')
+    kid = util.get_kid()
     jwk = jwk_store.get_key(kid)
     jwt = JWT(key=jwk, jwt=signed_request_object)
     # Return the JWT claims (i.e. our raw request object; not to be confused
@@ -33,6 +33,8 @@ def decode_signed_request_example(signed_request_object):
 
 if __name__ == '__main__':
     from os import environ
+    import json
+
 
     signed_request_object = environ.get('SIGNED_REQUEST_OBJECT')
     if signed_request_object is None:
@@ -40,7 +42,12 @@ if __name__ == '__main__':
 
     # Removing leading and trailing whitespace.
     signed_request_object = signed_request_object.strip()
-    print('Decoding signed request "%s"', signed_request_object)
+    print('Decoding signed request "{}"\n'.format(signed_request_object))
 
-    # Decode the request object and print the result.
-    print(decode_signed_request_example(signed_request_object))
+    # Decode the request object.
+    text = verify_signed_request_example(signed_request_object)
+
+    # Now parse and re-serialize to make the output clearer.
+    request_object = json.loads(text)
+    print('Verified request object:\n{}'.format(
+        json.dumps(request_object, indent=2)))

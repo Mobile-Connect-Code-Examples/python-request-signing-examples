@@ -14,13 +14,17 @@ import json
 
 from jwcrypto.jwk import JWK
 
+import util
+
 
 keys_dir = os.environ.get('KEYS_DIR') or os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'keys')
-kid = os.environ.get('KID', 'developer-app')
+kid = os.environ.get('KID')
+if kid is None:
+    kid = util.get_kid()
 
 
-key = JWK.generate(kty='RSA', size=2048, kid='developer-app')
+key = JWK.generate(kty='RSA', size=2048, kid=kid)
 
 
 private_contents = {
