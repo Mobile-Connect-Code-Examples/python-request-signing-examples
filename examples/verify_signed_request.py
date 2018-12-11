@@ -35,7 +35,11 @@ if __name__ == '__main__':
     from os import environ
     import json
 
-
+    # The signed request object is loaded from an environment variable. Please
+    # ensure:
+    # - this is set to the signed request object you want to verify;
+    # - the request object was signed using a private key corresponding to the
+    #   public key identified by PUBLIC_KEY_PATH.
     signed_request_object = environ.get('SIGNED_REQUEST_OBJECT')
     if signed_request_object is None:
         raise ValueError('Please set SIGNED_REQUEST_OBJECT env var')
