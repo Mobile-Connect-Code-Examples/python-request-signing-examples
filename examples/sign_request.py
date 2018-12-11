@@ -23,11 +23,10 @@ def sign_request_example():
     jwk_store.import_keyset(private_key_text)
 
     # Create an example request object.
-    inputs = util.get_inputs()
     raw_request_object = util.get_raw_request_object()
 
     # Get a key from the JWK store, and use it to sign the request object.
-    jwk = jwk_store.get_key(inputs['kid'])
+    jwk = jwk_store.get_key(util.get_kid())
     jwt = util.sign_request(jwk, raw_request_object)
     return jwt
 
