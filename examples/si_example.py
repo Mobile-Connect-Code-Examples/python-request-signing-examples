@@ -37,6 +37,8 @@ def send_si_request():
         # operator being used.
         'Host': 'operator-b.local-sandbox-example.com',
     }
+    if 'HOST_HEADER' in environ:
+        headers['Host'] = environ['HOST_HEADER']
 
     return requests.post(si_auth_url, headers=headers, params=query_params)
 
