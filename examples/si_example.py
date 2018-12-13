@@ -3,13 +3,17 @@
 
 A complete SI request example.
 """
+# pylint:disable=invalid-name
 from os import environ
-from base64 import b64encode
+import logging
 
 import requests
 
 import util
 from sign_request import sign_request_example
+
+
+logger = logging.getLogger(__name__)
 
 
 def send_si_request():
@@ -32,19 +36,20 @@ def send_si_request():
     # The complete dict of headers.
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
-        # This is required in order for this example to run against localhost,
-        # as the Sandbox checks the host header in order to determine the
-        # operator being used.
-        'Host': 'operator-b.local-sandbox-example.com',
     }
     if 'HOST_HEADER' in environ:
+        # If using the sandbox locally, you will likely need to set an explicit
+        # host header including the operator you are targetting: for example,
+        # HOST_HEADER='operator-b.local-sandbox-example.com'
         headers['Host'] = environ['HOST_HEADER']
 
-    return requests.post(si_auth_url, headers=headers, params=query_params)
+    logger.info('Making SI authorize request to "%s"', si_auth_url)
+    return requests.post(si_auth_url, headers=headers, params=query_params,
+                         allow_redirects=False)
 
 
 if __name__ == '__main__':
+    # pylint:disable=invalid-name
     response = send_si_request()
     print('Response:', response)
-    if response.status_code == 200:
-        print('Body content:', response.content)
+    print('Body content:', response.content)
